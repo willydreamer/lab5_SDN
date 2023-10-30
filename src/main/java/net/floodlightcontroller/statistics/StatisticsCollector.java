@@ -12,18 +12,14 @@ import java.util.Set;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
-import org.projectfloodlight.openflow.protocol.OFPortStatsEntry;
-import org.projectfloodlight.openflow.protocol.OFPortStatsReply;
-import org.projectfloodlight.openflow.protocol.OFStatsReply;
-import org.projectfloodlight.openflow.protocol.OFStatsRequest;
-import org.projectfloodlight.openflow.protocol.OFStatsType;
-import org.projectfloodlight.openflow.protocol.OFVersion;
+import org.projectfloodlight.openflow.protocol.*;
 import org.projectfloodlight.openflow.protocol.match.Match;
 import org.projectfloodlight.openflow.protocol.ver13.OFMeterSerializerVer13;
 import org.projectfloodlight.openflow.types.DatapathId;
 import org.projectfloodlight.openflow.types.OFPort;
 import org.projectfloodlight.openflow.types.TableId;
 import org.projectfloodlight.openflow.types.U64;
+import org.sdnplatform.sync.internal.util.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,12 +54,19 @@ public class StatisticsCollector implements IFloodlightModule, IStatisticsServic
 
 	private static final String PortTxThreshold  = "PortTxThreshold";
 	private static final String PortRxThreshold  = "PortRxThreshold";
+
+	private static int flowStatsInterval = 11;
+
+	private static ScheduledFuture<?> flowStatsCollector;
+	private static ScheduledFuture<?> portDescCollector;
 	
 	private static final String INTERVAL_PORT_STATS_STR = "collectionIntervalPortStatsSeconds";
 	private static final String ENABLED_STR = "enable";
 
 	private static final HashMap<NodePortTuple, SwitchPortBandwidth> portStats = new HashMap<NodePortTuple, SwitchPortBandwidth>();
 	private static final HashMap<NodePortTuple, SwitchPortBandwidth> tentativePortStats = new HashMap<NodePortTuple, SwitchPortBandwidth>();
+
+
 
 	/**
 	 * Run periodically to collect all port statistics. This only collects
@@ -240,7 +243,10 @@ public class StatisticsCollector implements IFloodlightModule, IStatisticsServic
 	/*
 	 * IStatisticsService implementation
 	 */
-	
+
+
+
+
 	@Override
 	public SwitchPortBandwidth getBandwidthConsumption(DatapathId dpid, OFPort p) {
 		return portStats.get(new NodePortTuple(dpid, p));
@@ -341,6 +347,39 @@ public class StatisticsCollector implements IFloodlightModule, IStatisticsServic
 
 		return model;
 	}
+
+
+//	protected class FlowStatsCollector implements Runnable {
+//		@Override
+//		public void run() {
+//
+//			Map<DatapathId, List<OFStatsReply>> replies = getSwitchStatistics(switchService.getAllSwitchDpids(), OFStatsType.FLOW);
+//			for (Entry<DatapathId, List<OFStatsReply>> e : replies.entrySet()) {
+//				IOFSwitch sw = switchService.getSwitch(e.getKey());
+//				for (OFStatsReply r : e.getValue()) {
+//					OFFlowStatsReply psr = (OFFlowStatsReply) r;
+//					for (OFFlowStatsEntry pse : psr.getEntries()) {
+//						if(sw.getOFFactory().getVersion().compareTo(OFVersion.OF_14) == 0){
+//							log.warn("Flow Stats not supported in OpenFlow 1.5.");
+//
+//						} else {
+//							Pair<Match, DatapathId> pair = new Pair<>(pse.getMatch(), e.getKey());
+//							flowStats.put(pair,FlowRuleStats.of(
+//									e.getKey(),
+//									pse.getByteCount(),
+//									pse.getPacketCount(),
+//									pse.getPriority(),
+//									pse.getHardTimeout(),
+//									pse.getIdleTimeout(),
+//									pse.getDurationSec()));
+//						}
+//					}
+//				}
+//			}
+//		}
+//	}
+
+
 
 	/**
 	 * Get statistics from a switch.
