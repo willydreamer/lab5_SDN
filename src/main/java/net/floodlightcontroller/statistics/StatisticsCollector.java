@@ -55,6 +55,9 @@ public class StatisticsCollector implements IFloodlightModule, IStatisticsServic
 
 	private static final long BITS_PER_BYTE = 8;
 	private static final long MILLIS_PER_SEC = 1000;
+
+	private static final String PortTxThreshold  = "PortTxThreshold";
+	private static final String PortRxThreshold  = "PortRxThreshold";
 	
 	private static final String INTERVAL_PORT_STATS_STR = "collectionIntervalPortStatsSeconds";
 	private static final String ENABLED_STR = "enable";
